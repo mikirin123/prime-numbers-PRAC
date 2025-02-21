@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>素因数分解クイズ</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { text-align: center; padding: 20px; }
+        .number-box { font-size: 2em; margin: 20px 0; }
+        .choices { margin: 10px 0; }
+        .result { font-size: 1.5em; margin-top: 20px; }
+        .selected-numbers { font-size: 1.2em; margin-top: 10px; }
+        .score { font-size: 1.5em; margin-top: 20px; }
+        .correct-questions { font-size: 1.2em; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>素因数分解クイズ</h1>
+        <div class="number-box" id="number"></div>
+        <div class="choices" id="choices"></div>
+        <div class="selected-numbers" id="selectedNumbers">選択した数字: </div>
+        <button class="btn btn-primary" onclick="checkAnswer()">解答する</button>
+        <div class="result" id="result"></div>
+        <div class="score" id="score">正解数: 0</div>
+        <div class="correct-questions" id="correctQuestions">正解した問題: </div>
+        <button class="btn btn-success mt-3" onclick="generateQuestion()">新しい問題</button>
+    </div>
+
+    <script>
+        let correctCount = 0;
+        let correctQuestions = [];
+
+        function getRandomNumber() {
+            return Math.floor(Math.random() * 9999) + 1;
+        }
+
+        function primeFactors(n) {
+            const factors = [];
+            let divisor = 2;
+            while (n >= 2) {
+                if (n % divisor === 0) {
+                    factors.push(divisor);
+                    n /= divisor;
+                } else {
+                    divisor++;
+                }
+            }
+            return factors;
+        }
+
+        function generateQuestion() {
+            const number = getRandomNumber();
+            const factors = primeFactors(number);
+            document.getElementById("number").textContent = number;
+            const choiceContainer = document.getElementById("choices");
+            choiceContainer.innerHTML = "";
+            const selectedNumbers = document.getElementById("selectedNumbers");
+            selectedNumbers.textContent = "選択した数字: ";
+            const uniqueChoices = new Set(factors.concat([2, 3, 5, 7, 11, 13, 17, 19]));
+            const choices = Array.from(uniqueChoices).sort((a, b) => a - b);
+            choices.forEach(num => {
+                const btn = document.createElement("button");
+                btn.textContent = num;
+                btn.className = "btn btn-outline-primary m-1";
+                btn.onclick = () => {
+                    selectedNumbers.textContent += num + ", ";
+                    btn.classList.toggle("btn-primary");
+                };
+                choiceContainer.appendChild(btn);
+            });
+            document.getElementById("result").textContent = "";
+        }
+
+        function checkAnswer() {
+            const selectedText = document.getElementById("selectedNumbers").textContent.replace("選択した数字: ", "").slice(0, -2);
+            const selected = selectedText.split(", ").map(num => parseInt(num)).filter(num => !isNaN(num));
+            const number = parseInt(document.getElementById("number").textContent);
+            const correctFactors = primeFactors(number);
+            selected.sort((a, b) => a - b);
+            correctFactors.sort((a, b) => a - b);
+            const isCorrect = selected.length === correctFactors.length && selected.every((val, index) => val === correctFactors[index]);
+            const result = isCorrect ? "おめでとうございます！正解です！" : "不正解... 正しい素因数: " + correctFactors.join(", ");
+            document.getElementById("result").textContent = result;
+            if (isCorrect) {
+                correctCount++;
+                document.getElementById("score").textContent = "正解数: " + correctCount;
+                correctQuestions.push(number + " の素因数: " + correctFactors.join(", "));
+                document.getElementById("correctQuestions").innerHTML = "正解した問題:<br>" + correctQuestions.join("<br>");
+            }
+        }
+
+        window.onload = generateQuestion;
+    </script>
+</body>
+</html>
